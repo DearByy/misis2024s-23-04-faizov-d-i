@@ -1,4 +1,4 @@
-CHECK: 20240212-175549
+CHECK: 20240216-073929
 OK: file codeforces.id is correct
 OK: folder prj.codeforces structure is correct
 ERROR: file CMakeLists.txt is absent
