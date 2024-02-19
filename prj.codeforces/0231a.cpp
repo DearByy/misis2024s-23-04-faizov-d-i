@@ -11,7 +11,7 @@ int main()
 	int count;
 	cin >> count;
 	std::cin.ignore();// очищаю буфер входящего потока от \n
-	vector<int> answ;
+	int answ = 0;
 	for (int i = 0; i < count; i++)
 	{
 		string str;
@@ -31,23 +31,18 @@ int main()
 			}
 		}
 		int j = 0;
+
 		for (int i = 0; i < arr2.size(); i++)
 		{
 			if (arr2[i] == 49)
 			{
-				j += 1;
+				j ++;
 			}
 		}
 		if (j >= 2)
 		{
-			answ.push_back(1);
-		}
-		else
-		{
-			answ.push_back(0);
+			answ++;
 		}
 	}
-	int sumansw = std::accumulate(answ.begin(), answ.end(), 0);
-	cout << sumansw;
+	cout << answ;
 }
-
