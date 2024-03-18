@@ -1,4 +1,10 @@
-CHECK: 20240312-185928
+CHECK: 20240318-112534
+OK: file codeforces.id is correct
+ERROR: invalid file name 0116
+ERROR: file CMakeLists.txt is absent
+ERROR: file prj.codeforces/CMakeLists.txt is absent
+ERROR: file prj.test/CMakeLists.txt is absent
+ERROR: CMake generator failed
 ERROR: lab complex - test build failed
 ERROR: lab complex_io - test build failed
 ERROR: lab complex_m - test build failed
