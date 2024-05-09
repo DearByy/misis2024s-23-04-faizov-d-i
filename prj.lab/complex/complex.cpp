@@ -1,158 +1,140 @@
-#include <iostream>
-#include <sstream>
-#include "complex.h"
+#include "complex.hpp"
 
-Complex Complex::operator-() const {
-	return (Complex(-this->real, -this->imagine));
+
+std::ostream& operator<<(std::ostream& ostrm, const Complex& rhs)
+{
+	return rhs.writeTo(ostrm);
 }
-Complex Complex::operator=(const double& nreal) {
-	this->real = nreal;
-	this->imagine = 0.0;
-	return *this;
+
+std::istream& operator>>(std::istream& istrm, Complex& rhs)
+{
+	return rhs.readFrom(istrm);
 }
-bool Complex::operator==(const Complex& P2) {
-	return (this->real == P2.real && this->imagine == P2.imagine);
-}
-bool Complex::operator==(const double& nreal) {
-	return ((this->real == nreal) && (this->imagine == 0.0));
-}
-bool operator==(const double& nreal, const Complex& P2) {
-	return ((P2.real == nreal) && (P2.imagine == 0));
-}
-bool Complex::operator!=(const Complex& P2) {
-	return (!operator==(P2));
-}
-bool Complex::operator!=(const double& nreal) {
-	return (!operator==(nreal));
-}
-bool operator!=(const double& nreal, const Complex& P2) {
-	return (!operator==(nreal, P2));
-}
-Complex Complex::operator+=(const Complex& P2) {
-	this->real += P2.real;
-	this->imagine += P2.imagine;
-	return *this;
-}
-Complex Complex::operator+=(const double& nreal) {
-	return operator+=(Complex(nreal));
-}
-Complex Complex::operator-=(const Complex& P2) {
-	this->real -= P2.real;
-	this->imagine -= P2.imagine;
-	return *this;
-}
-Complex Complex::operator-=(const double& nreal) {
-	return operator-=(Complex(nreal));
-}
-void Complex::operator--() {
-	this->real -= 1;
-}
-void Complex::operator++() {
-	this->real += 1;
-}
-Complex Complex::operator*=(const Complex& P2) {
-	double threal(this->real), thimagine(this->imagine);
-	this->real = threal * P2.real - thimagine * P2.imagine;
-	this->imagine = threal * P2.imagine + thimagine * P2.real;
-	return *this;
-}
-Complex Complex::operator*=(const double& nreal) {
-	this->real *= nreal;
-	this->imagine *= nreal;
-	return *this;
-}
-Complex Complex::operator/=(const Complex& P2) {
-	if ((P2.real * P2.real + P2.imagine * P2.imagine) != 0) {
-		double threal(this->real), thimagine(this->imagine);
-		this->real = (threal * P2.real + thimagine * P2.imagine) / (P2.real * P2.real + P2.imagine * P2.imagine);
-		this->imagine = (thimagine * P2.real - threal * P2.imagine) / (P2.real * P2.real + P2.imagine * P2.imagine);
-		return *this;
+
+bool testParse(const std::string& str)
+{
+	using namespace std;
+	istringstream istrm(str);
+	Complex z;
+	istrm >> z;
+	if (istrm.good()) {
+		cout << "Read success: " << str << " -> " << z << endl;
+
 	}
-	throw "DivisionError -> Can not divide by 0";
-}
-Complex Complex::operator/=(const double& nreal) {
-	if (nreal != 0) {
-		this->real /= nreal;
-		this->imagine /= nreal;
-		return *this;
+	else {
+		cout << "Read error : " << str << " -> " << z << endl;
+
 	}
-	throw "DivisionError -> Can not divide by 0";
+	return istrm.good();
 }
-Complex Complex::operator+(const Complex& P2) {
-	Complex sum(*this);
-	sum += P2;
+
+Complex& Complex::operator+=(const Complex& rhs)
+{
+	re += rhs.re;
+	im += rhs.im;
+	return *this;
+}
+Complex& Complex::operator-=(const Complex& rhs)
+{
+	re -= rhs.re;
+	im -= rhs.im;
+	return *this;
+}
+Complex& Complex::operator*=(const Complex& rhs)
+{
+	double copy = re;
+	re = (re * rhs.re) - (im * rhs.im);
+	im = (copy * rhs.im) + (im * rhs.re);
+	return *this;
+}
+Complex& Complex::operator*=(const double& rhs)
+{
+	re *= rhs;
+	im *= rhs;
+	return *this;
+}
+Complex& Complex::operator/=(const Complex& rhs)
+{
+	double copy = re;
+	re = ((re * rhs.re) + (im * rhs.im)) / ((rhs.re * rhs.re) + (rhs.im * rhs.im));
+	im = ((rhs.re * im) - (rhs.im * copy)) / ((rhs.re * rhs.re) + (rhs.im * rhs.im));
+	return *this;
+}
+Complex& Complex::operator/=(const double& rhs)
+{
+	re /= rhs;
+	im /= rhs;
+	return *this;
+}
+
+
+Complex operator+(const Complex& lhs, const Complex& rhs)
+{
+	Complex sum(lhs);
+	sum += rhs;
 	return sum;
 }
-Complex Complex::operator+(const double& nreal) {
-	return operator+(Complex(nreal));
+
+Complex operator-(const Complex& lhs, const Complex& rhs)
+{
+	return Complex(lhs.re - rhs.re, lhs.im - rhs.im);
 }
-Complex operator+(const double& nreal, const Complex& P2) {
-	Complex sum(P2);
-	sum += nreal;
-	return sum;
+
+Complex operator*(const Complex& lhs, const Complex& rhs)
+{
+	return Complex((lhs.re * rhs.re) - (lhs.im * rhs.im), (lhs.re * rhs.im) + (lhs.im * rhs.re));
 }
-Complex Complex::operator-(const Complex& P2) {
-	Complex diff(*this);
-	diff -= P2;
-	return diff;
+Complex operator/(const Complex& lhs, const Complex& rhs)
+{
+	return Complex(((lhs.re * rhs.re) + (lhs.im * rhs.im)) / ((rhs.re * rhs.re) + (rhs.im * rhs.im))
+		, ((rhs.re * lhs.im) - (rhs.im * lhs.re)) / ((rhs.re * rhs.re) + (rhs.im * rhs.im)));
 }
-Complex Complex::operator-(const double& nreal) {
-	return operator-(Complex(nreal));
-}
-Complex operator-(const double& nreal, const Complex& P2) {
-	Complex diff(nreal);
-	diff -= P2;
-	return diff;
-}
-Complex Complex::operator*(const Complex& P2) {
-	Complex mul(*this);
-	mul *= P2;
-	return mul;
-}
-Complex Complex::operator*(const double& nreal) {
-	Complex mul(*this);
-	mul *= nreal;
-	return mul;
-}
-Complex operator*(const double& nreal, const Complex& P2) {
-	Complex mul(P2);
-	mul *= nreal;
-	return mul;
-}
-Complex Complex::operator/(const Complex& P2) {
-	Complex divi(*this);
-	divi /= P2;
-	return divi;
-}
-Complex Complex::operator/(const double& nreal) {
-	Complex divi(*this);
-	divi /= nreal;
-	return divi;
-}
-Complex operator/(const double& nreal, const Complex& P2) {
-	Complex divi(nreal);
-	divi /= P2;
-	return divi;
-}
-std::ostream& Complex::writeTo(std::ostream& ostrm) const {
-	ostrm << left_brace << real << comma << imagine << right_brace;
+bool operator==(const double& lhs, const Complex& rhs) { return Complex(lhs) == rhs; }
+bool operator==(const Complex& lhs, const double rhs) { return Complex(rhs) == lhs; }
+bool operator!=(const double& lhs, const Complex& rhs) { return Complex(lhs) != rhs; }
+bool operator!=(const Complex& lhs, const double& rhs) { return Complex(rhs) != lhs; }
+Complex operator+(const double& lhs, const Complex& rhs) { return Complex(lhs) + rhs; }
+Complex operator+(const Complex& lhs, const double& rhs) { return Complex(rhs) + lhs; }
+Complex operator-(const double& lhs, const Complex& rhs) { return Complex(lhs) - rhs; }
+Complex operator-(const Complex& lhs, const double& rhs) { return lhs - Complex(rhs); }
+Complex operator*(const double& lhs, const Complex& rhs) { return Complex(lhs) * rhs; }
+Complex operator*(const Complex& lhs, const double rhs) { return Complex(rhs) * lhs; }
+Complex operator/(const double& lhs, const Complex& rhs) { return Complex(lhs) / rhs; }
+Complex operator/(const Complex& lhs, const double& rhs) { return lhs / Complex(rhs); }
+
+std::ostream& Complex::writeTo(std::ostream& ostrm) const
+{
+	ostrm << leftBrace << re << separator << im << rightBrace;
 	return ostrm;
 }
-std::istream& Complex::readFrom(std::istream& istrm) {
-	char LeftBrace(0);
-	double nreal(0.0);
-	char Comma(0);
-	double nimagine(0.0);
-	char RightBrace(0);
-	istrm >> LeftBrace >> nreal >> Comma >> nimagine >> RightBrace;
+
+std::istream& Complex::readFrom(std::istream& istrm)
+{
+	char leftBrace(0);
+	double real(0.0);
+	char comma(0);
+	double imaganary(0.0);
+	char rightBrace(0);
+	istrm >> leftBrace >> real >> comma >> imaganary >> rightBrace;
 	if (istrm.good()) {
-		if ((LeftBrace == Complex::left_brace) && (Comma == Complex::comma) && (RightBrace == Complex::right_brace)) {
-			real = nreal;
-			imagine = nimagine;
+		if ((Complex::leftBrace == leftBrace) && (Complex::separator == comma)
+			&& (Complex::rightBrace == rightBrace)) {
+			re = real;
+			im = imaganary;
+
 		}
 		else {
 			istrm.setstate(std::ios_base::failbit);
+
 		}
+
 	}
 	return istrm;
+}
+
+int main() {
+	
+	Complex B;
+	testParse("{12, 32}");
+	return 0;
 }
