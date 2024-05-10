@@ -132,9 +132,3 @@ std::istream& Complex::readFrom(std::istream& istrm)
 	return istrm;
 }
 
-int main() {
-	
-	Complex B;
-	testParse("{12, 32}");
-	return 0;
-}
