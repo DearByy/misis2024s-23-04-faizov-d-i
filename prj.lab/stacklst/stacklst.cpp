@@ -1,4 +1,5 @@
-#include "stacklst.hpp"
+#include <stacklst/stacklst.hpp>
+
 
 bool StackLst::IsEmpty() const noexcept { return head_ == nullptr; }
 
