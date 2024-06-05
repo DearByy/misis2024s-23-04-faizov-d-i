@@ -1,219 +1,268 @@
 #include "rational.hpp"
 
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
+Rational::Rational() : num_{0}, den_{1} {}
 
-int64_t GreatestCommonDiviser(const int64_t lhs, const int64_t rhs) noexcept {
-  if (lhs % rhs == 0) {
-    return rhs;
-  }
-  if (rhs % lhs == 0) {
-    return lhs;
-  }
-  if (lhs > rhs) {
-    return GreatestCommonDiviser(lhs % rhs, rhs);
-  }
-  return GreatestCommonDiviser(lhs, rhs % lhs);
-}
-
-int64_t LeastCommonMultiple(const int64_t lhs, const int64_t rhs) noexcept {
-  return (lhs * rhs) / GreatestCommonDiviser(lhs, rhs);
-} 
-
-Rational::Rational(const int64_t number)
-  : Rational(number, 1) {
-}
-
-Rational::Rational(const int64_t number, const int64_t denominator) 
-  : num_(number)
-  , den_(denominator) {
-  if (denominator == 0) {
-    throw std::invalid_argument("Division by zero is not allowed");
-  }
-  CheckSign();
-  SimplifyFraction();
-}
-
-void Rational::CheckSign() noexcept {
-  if (den_ < 0) {
-    num_ = -num_;
-    den_ = -den_;
-  }
-  return;
-}
-
-void Rational::SimplifyFraction() noexcept {
-  int64_t greatest_common_diviser = GreatestCommonDiviser(std::abs(num_), den_);
-  if (greatest_common_diviser != 1) {
-    num_ /= greatest_common_diviser;
-    den_ /= greatest_common_diviser;
-  }
-  return;
-}
-
-bool Rational::operator==(const Rational& rhs) const noexcept {
-  return num_ == rhs.num_ && den_ == rhs.den_; 
-}
-
-bool Rational::operator!=(const Rational& rhs) const noexcept { 
-  return !(operator==(rhs)); 
-}
-
-bool Rational::operator==(const int64_t rhs) const noexcept { 
-  return operator==(Rational(rhs)); 
-}
-
-bool Rational::operator!=(const int64_t rhs) const noexcept { 
-  return operator!=(Rational(rhs)); 
-}
-
-bool Rational::operator<(const Rational& rhs) const noexcept { 
-  return num_ * rhs.den_ < rhs.num_ * den_; 
-}
-
-bool Rational::operator<(const int64_t rhs) const noexcept { 
-  return operator<(Rational(rhs)); 
-}
-
-bool Rational::operator<=(const Rational& rhs) const noexcept { 
-  return operator<(rhs) || operator==(rhs); 
-}
-
-bool Rational::operator<=(const int64_t rhs) const noexcept { 
-  return operator<=(Rational(rhs)); 
-}
-bool Rational::operator>(const Rational& rhs) const noexcept { 
-  return num_ * rhs.den_ > rhs.num_ * den_; 
-}
-
-bool Rational::operator>(const int64_t rhs) const noexcept { 
-  return operator>(Rational(rhs)); 
-}
-
-bool Rational::operator>=(const Rational& rhs) const noexcept { 
-  return operator>(rhs) || operator==(rhs); 
-}
-
-bool Rational::operator>=(const int64_t rhs) const noexcept { 
-  return operator>=(Rational(rhs)); 
-}
-
-Rational& Rational::operator+=(const Rational& rhs) noexcept {
-  if (den_ != rhs.den_) {
-    int64_t least_common_multiple = LeastCommonMultiple(den_, rhs.den_);
-    num_ *= least_common_multiple / den_;
-    den_ = least_common_multiple;
-    num_ += rhs.num_ * least_common_multiple / rhs.den_;
+Rational::Rational(int64_t num, int64_t den) : num_{num}, den_{den} {
+  if (den == 0) {
+    throw std::invalid_argument("Denominator should be greater than zero!\n");
   } else {
-    num_ += rhs.num_;
+    num_ = num;
+    den_ = den;
+    ChangeRational();
   }
-  SimplifyFraction();
+}
+
+int64_t Rational::num() const { return num_; }
+
+int64_t Rational::den() const { return den_; }
+
+void Rational::ChangeRational() {
+  if (den_ < 0) {
+    den_ = -den_;
+    num_ = -num_;
+  }
+  int64_t GCD = std::gcd(std::abs(num_), std::abs(den_));
+  den_ /= GCD, num_ /= GCD;
+}
+
+Rational& Rational::operator=(const Rational& rhs) {
+  if (this != &rhs) {
+    num_ = rhs.num_;
+    den_ = rhs.den_;
+    ChangeRational();
+  }
   return *this;
 }
-
-Rational& Rational::operator-=(const Rational& rhs) noexcept {
-  return operator+=(-rhs);
+Rational& Rational::operator=(const int64_t rhs) {
+  return operator=(Rational(rhs, 1));
 }
 
-Rational& Rational::operator*=(const Rational& rhs) noexcept {
+Rational& Rational::operator*=(const Rational& rhs) {
   num_ *= rhs.num_;
   den_ *= rhs.den_;
-  SimplifyFraction();
+  ChangeRational();
   return *this;
+}
+Rational& Rational::operator*=(const int64_t rhs) {
+  return operator*=(Rational(rhs, 1));
 }
 
 Rational& Rational::operator/=(const Rational& rhs) {
-  if (rhs.num_ == 0) {
-    throw std::invalid_argument("Division by zero is not allowed");
+  if (rhs.num_ != 0) {
+    num_ *= rhs.den_;
+    den_ *= rhs.num_;
+    ChangeRational();
+    return *this;
   }
-  num_ *= rhs.den_;
-  den_ *= rhs.num_;
-  CheckSign();
-  SimplifyFraction();
-  return *this;
+  throw std::invalid_argument("Divide by zero exception");
+}
+Rational& Rational::operator/=(const int64_t rhs) {
+  return operator/=(Rational(rhs));
 }
 
-Rational operator+(const Rational& lhs, const Rational& rhs) noexcept {
+Rational& Rational::operator+=(const Rational& rhs) {
+  int64_t GCD = std::gcd(den_, rhs.den_);
+  num_ = num_ * (rhs.den_ / GCD) + rhs.num_ * (den_ / GCD);
+  den_ = den_ / GCD * rhs.den_;
+  ChangeRational();
+  return *this;
+}
+Rational& Rational::operator+=(const int64_t rhs) {
+  return operator+=(Rational(rhs, 1));
+}
+
+Rational& Rational::operator-=(const Rational& rhs) {
+  int64_t GCD = std::gcd(den_, rhs.den_);
+  num_ = num_ * (rhs.den_ / GCD) - rhs.num_ * (den_ / GCD);
+  den_ = den_ / GCD * rhs.den_;
+  ChangeRational();
+  return *this;
+}
+Rational& Rational::operator-=(const int64_t rhs) {
+  return operator-=(Rational(rhs));
+}
+
+bool operator==(const Rational& lhs, const Rational& rhs) {
+  return (lhs.num() == rhs.num() && lhs.den() == rhs.den());
+}
+bool operator==(const Rational& lhs, const int64_t rhs) {
+  return lhs == Rational(rhs);
+}
+bool operator==(const int64_t lhs, const Rational& rhs) {
+  return Rational(lhs) == rhs;
+}
+
+bool operator!=(const Rational& lhs, const Rational& rhs) {
+  return !(lhs == rhs);
+}
+bool operator!=(const Rational& lhs, const int64_t rhs) {
+  return !(lhs == rhs);
+}
+bool operator!=(const int64_t lhs, const Rational& rhs) {
+  return !(lhs == rhs);
+}
+
+bool operator<(const Rational& lhs, const Rational& rhs) {
+  return (lhs.num() * rhs.den() < rhs.num() * lhs.den());
+}
+bool operator<(const Rational& lhs, const int64_t rhs) {
+  return (lhs < Rational(rhs));
+}
+bool operator<(const int64_t lhs, const Rational& rhs) {
+  return (Rational(lhs) < rhs);
+}
+
+bool operator<=(const Rational& lhs, const Rational& rhs) {
+  return (lhs.num() * rhs.den() <= rhs.num() * lhs.den());
+}
+bool operator<=(const Rational& lhs, const int64_t rhs) {
+  return lhs <= Rational(rhs);
+}
+bool operator<=(const int64_t lhs, const Rational& rhs) {
+  return Rational(lhs) <= rhs;
+}
+
+bool operator>(const Rational& lhs, const Rational& rhs) {
+  return (lhs.num() * rhs.den() > rhs.num() * lhs.den());
+}
+bool operator>(const Rational& lhs, const int64_t rhs) {
+  return lhs > Rational(rhs);
+}
+bool operator>(const int64_t lhs, const Rational& rhs) {
+  return Rational(lhs) > rhs;
+}
+
+bool operator>=(const Rational& lhs, const Rational& rhs) {
+  return (lhs.num() * rhs.den() >= rhs.num() * lhs.den());
+}
+bool operator>=(const Rational& lhs, const int64_t rhs) {
+  return lhs >= Rational(rhs);
+}
+bool operator>=(const int64_t lhs, const Rational& rhs) {
+  return Rational(lhs) >= rhs;
+}
+
+Rational operator+(const Rational& lhs, const Rational& rhs) {
   Rational sum = lhs;
   sum += rhs;
   return sum;
 }
 
-[[nodiscard]] Rational operator+(const Rational& lhs, const int64_t rhs) noexcept {
-  return lhs + Rational(rhs);
-}
-
-[[nodiscard]] Rational operator+(const int64_t lhs, const Rational& rhs) noexcept {
-  return Rational(lhs) + rhs;
-}
-
-Rational operator-(const Rational& lhs, const Rational& rhs) noexcept {
+Rational operator+(const Rational& lhs, int64_t rhs) {
   Rational sum = lhs;
-  sum -= rhs;
+  sum += rhs;
   return sum;
 }
 
-[[nodiscard]] Rational operator-(const Rational& lhs, const int64_t rhs) noexcept {
-  return lhs - Rational(rhs);
+Rational operator+(int64_t lhs, const Rational& rhs) {
+  return operator+(rhs, lhs);
 }
 
-[[nodiscard]] Rational operator-(const int64_t lhs, const Rational& rhs) noexcept {
-  return Rational(lhs) - rhs;
+Rational operator-(const Rational& lhs, const Rational& rhs) {
+  Rational dif = lhs;
+  dif -= rhs;
+  return dif;
+}
+Rational operator-(const Rational& lhs, int64_t rhs) {
+  Rational dif = lhs;
+  dif -= Rational(rhs, 1);
+  return dif;
+}
+Rational operator-(int64_t lhs, const Rational& rhs) {
+  return -operator-(rhs, lhs);
 }
 
-Rational operator*(const Rational& lhs, const Rational& rhs) noexcept {
-  Rational sum = lhs;
-  sum *= rhs;
-  return sum;
+Rational operator*(const Rational& lhs, const Rational& rhs) {
+  Rational product = lhs;
+  product *= rhs;
+  return product;
 }
-
-[[nodiscard]] Rational operator*(const Rational& lhs, const int64_t rhs) noexcept {
-  return lhs * Rational(rhs);
+Rational operator*(const Rational& lhs, int64_t rhs) {
+  Rational product = lhs;
+  product *= Rational(rhs);
+  return product;
 }
-
-[[nodiscard]] Rational operator*(const int64_t lhs, const Rational& rhs) noexcept {
-  return Rational(lhs) * rhs;
+Rational operator*(int64_t lhs, const Rational& rhs) {
+  return operator*(Rational(lhs), rhs);
 }
 
 Rational operator/(const Rational& lhs, const Rational& rhs) {
-  Rational sum = lhs;
-  sum /= rhs;
-  return sum;
+  Rational division = lhs;
+  if (rhs.num() != 0) {
+    division /= rhs;
+    return division;
+  }
+  throw std::invalid_argument("Divide by zero exception");
+}
+Rational operator/(const Rational& lhs, int64_t rhs) {
+  Rational division = lhs;
+  if (rhs != 0) {
+    division /= Rational(rhs, 1);
+    return division;
+  }
+  throw std::invalid_argument("Divide by zero exception");
+}
+Rational operator/(int64_t lhs, const Rational& rhs) {
+  Rational division = Rational(lhs, 1);
+  division /= rhs;
+  return division;
 }
 
-[[nodiscard]] Rational operator/(const Rational& lhs, const int64_t rhs) {
-  return lhs / Rational(rhs);
+std::ostream& operator<<(std::ostream& ostrm, const Rational& rhs) {
+  return rhs.writeTo(ostrm);
 }
 
-[[nodiscard]] Rational operator/(const int64_t lhs, const Rational& rhs) {
-  return Rational(lhs) / rhs;
+std::istream& operator>>(std::istream& istrm, Rational& rhs) {
+  return rhs.readFrom(istrm);
 }
 
-std::ostream& Rational::WriteTo(std::ostream& ostrm) const noexcept {
-  ostrm << num_ << separator << den_;
+std::ostream& Rational::writeTo(std::ostream& ostrm) const {
+  ostrm << num_ << Rational::slash << den_;
   return ostrm;
 }
 
-std::istream& Rational::ReadFrom(std::istream& istrm) noexcept {
-  int64_t num(0);
-  char delimiter(0);
-  int64_t den(1);
-  istrm >> num;
-  istrm.get(delimiter);
-  int64_t trash = istrm.peek();
-  istrm >> den;
-  if (!istrm || trash > '9' || trash < '0') {
-    istrm.setstate(std::ios_base::failbit);
-    return istrm;
-  }
-  if (istrm.good() || istrm.eof()) {
-    if ('/' == delimiter && den > 0) {
-      *this = Rational(num, den);
-    }
-    else {
+std::istream& Rational::readFrom(std::istream& istrm) {
+  int64_t numerator;
+  char division_sign;
+  int64_t denominator;
+
+  istrm >> numerator;
+  char after_numerator = istrm.peek();
+
+  istrm >> division_sign;
+  char after_sign = istrm.peek();
+  istrm >> denominator;
+
+  bool no_spaces = (after_numerator == Rational::slash) &&
+                   (after_sign >= '0' && after_sign <= '9');
+
+  bool istrm_good =
+      no_spaces &&
+      (istrm.good() || (!istrm.fail() && !istrm.bad() && istrm.eof()));
+
+  if (istrm_good) {
+    if (denominator > 0 && division_sign == Rational::slash) {
+      num_ = numerator;
+      den_ = denominator;
+      ChangeRational();
+    } else {
       istrm.setstate(std::ios_base::failbit);
     }
-  }
+  } else
+    (istrm.setstate(std::ios_base::failbit));
   return istrm;
+}
+
+bool testParse(const std::string& str) {
+  std::istringstream istrm(str);
+  Rational z;
+  istrm >> z;
+
+  bool istrm_good = istrm.good() || (!istrm.fail() && !istrm.bad());
+  if (istrm_good) {
+    std::cout << "Read success: " << str << '\n';
+  } else {
+    std::cout << "Read error : " << str << '\n';
+  }
+  return istrm_good;
 }
