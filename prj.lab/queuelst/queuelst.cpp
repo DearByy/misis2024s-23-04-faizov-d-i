@@ -1,53 +1,86 @@
+#include "queuelst/queuelst.hpp"
 
-#include "queuelst.hpp"
+#include <stdexcept>
 
-void QueueLst::Push(const Complex& rhs) noexcept {
-    if (last_ != nullptr) {
-        last_->next_ = new Node(rhs);
-        last_ = last_->next_;
-        return; 
-    }
-    last_ = new Node(rhs);
-    first_ = last_;
+QueueLst::QueueLst(const QueueLst& other) {
+  Node* current = other.head_;
+  while (current) {
+    Push(current->val);
+    current = current->next;
+  }
 }
+
+QueueLst::QueueLst(QueueLst&& other) noexcept {
+  head_ = other.head_;
+  tail_ = other.tail_;
+  other.head_ = nullptr;
+  other.tail_ = nullptr;
+}
+
+QueueLst& QueueLst::operator=(const QueueLst& other) {
+  if (this != &other) {
+    Clear();
+    Node* current = other.head_;
+    while (current) {
+      Push(current->val);
+      current = current->next;
+    }
+  }
+  return *this;
+}
+
+QueueLst& QueueLst::operator=(QueueLst&& other) noexcept {
+  if (this != &other) {
+    Clear();
+    head_ = other.head_;
+    tail_ = other.tail_;
+    other.head_ = nullptr;
+    other.tail_ = nullptr;
+  }
+  return *this;
+}
+
+bool QueueLst::IsEmpty() const noexcept { return nullptr == head_; }
+
+QueueLst::~QueueLst() noexcept { Clear(); }
 
 void QueueLst::Pop() noexcept {
-    if (first_ != nullptr) {
-        if (first_ != last_) {
-            Node* temp = first_;
-            first_ = temp->next_;
-            delete temp;
-            return;
-        }
-        delete first_;
-        first_ = nullptr;
-        last_ = nullptr;
-    }
+  if (!IsEmpty()) {
+    Node* deleted = head_;
+    head_ = head_->next;
+    delete deleted;
+  }
+  if (IsEmpty()) {
+    tail_ = nullptr;
+  }
 }
 
-Complex&  QueueLst::Top() {
-    if (first_ != nullptr) {
-        return (first_->data_);
-    }
-    throw std::range_error("Queue is empty");
-} 
-
-const Complex&  QueueLst::Top() const {
-    if (first_ != nullptr) {
-        return (first_->data_);
-    }
-    throw std::range_error("Queue is empty");
+void QueueLst::Push(const Complex& val) {
+  if (IsEmpty()) {
+    tail_ = new Node{val};
+    head_ = tail_;
+  } else {
+    tail_->next = new Node{val};
+    tail_ = tail_->next;
+  }
 }
 
-void QueueLst::Clear() noexcept{
-    while (first_ != nullptr) {
-        Node* temp = first_;
-        first_ = temp->next_;
-        delete temp;
-    }
-    last_ = nullptr;
+Complex& QueueLst::Top() {
+  if (IsEmpty()) {
+    throw std::logic_error("QueueLst - try get top form empty queue.");
+  }
+  return head_->val;
 }
 
-bool QueueLst::IsEmpty() {
-    return (first_ == nullptr);
+const Complex& QueueLst::Top() const {
+  if (IsEmpty()) {
+    throw std::logic_error("QueueLst - try get top form empty queue.");
+  }
+  return head_->val;
+}
+
+void QueueLst::Clear() noexcept {
+  while (!IsEmpty()) {
+    Pop();
+  }
 }
