@@ -1,52 +1,36 @@
+#pragma once
+#ifndef QUEUELSTSPR_HPP
+#define QUEUELSTSPR_HPP
 
-#ifndef QUEUELSTPRHPP16032024
-#define QUEUELSTPRHPP16032024
+#include <cstddef>
 
-#include <complex/complex.hpp>
-#include <queuelst/queuelst.hpp>
+class QueueLstPr {
+ public:
+  QueueLstPr() = default;
+  QueueLstPr(const QueueLstPr&);
+  QueueLstPr(QueueLstPr&&) noexcept;
+  ~QueueLstPr();
 
-class QueueLstPr : public QueueLst {
-public:
-    QueueLstPr() 
-        : QueueLst()
-    {
-    }
-    QueueLstPr(const QueueLstPr& rhs) 
-        : QueueLst(rhs)
-    {
-    }
-    QueueLstPr(QueueLstPr&& rhs) 
-        : QueueLst(rhs)
-    {
-    }
-    ~QueueLstPr() = default;
-    QueueLstPr& operator=(const QueueLstPr& rhs) {
-        if (this != &rhs) {
-            while (first_ != nullptr) {
-                Node* temp = first_;
-                first_ = temp->next_;
-                delete temp;
-            }
-            last_ = nullptr;
-            Node* rhs_first = rhs.first_;
-            while (rhs_first != nullptr) {
-                this->Push(rhs_first->data_);
-                rhs_first = rhs_first->next_;
-            }
-        }
-        return *this;
-    }
-    QueueLstPr& operator=(QueueLstPr&& rhs) {
-        Node* tempfirst_ = first_;
-        Node* templast_ = last_;
-        first_ = rhs.first_;
-        last_ = rhs.last_;
-        rhs.first_ = tempfirst_;
-        rhs.last_ = templast_;
-        return *this;
-    }
+  QueueLstPr& operator=(const QueueLstPr&);
+  QueueLstPr& operator=(QueueLstPr&&) noexcept;
 
-    void Push(const Complex&) noexcept override;
+  bool IsEmpty() const noexcept;
+  void Pop() noexcept;
+  void Push(const float& val);
+  float& Top();
+  const float& Top() const;
+  void Clear() noexcept;
+
+  void Print();
+
+ private:
+  struct Node {
+    float val;
+    Node* next = nullptr;
+  };
+
+  Node* head_ = nullptr;
+  Node* tail_ = nullptr;
 };
 
-#endif //QUEUELSTPRHPP16032024
+#endif
